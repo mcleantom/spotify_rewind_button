@@ -18,7 +18,8 @@ const base64encode = (input) => {
 }
 
 const clientId = '63013162bacc41f29f68ce6114ae395b';
-const redirectUri = 'http://localhost:3031';
+// if we are on localhost
+const redirectUri = window.location.href;
 
 const scope = 'user-read-private user-read-email user-modify-playback-state user-read-currently-playing';
 const authUrl = new URL('https://accounts.spotify.com/authorize');
