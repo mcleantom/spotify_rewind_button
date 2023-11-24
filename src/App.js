@@ -7,7 +7,8 @@ import {
     pauseSong,
     getCurrentlyPlaying,
     play,
-    seekToPosition
+    seekToPosition,
+    getAccessToken
 } from "./spotify_api";
 
 let playScratchSoundEffect = () => {
@@ -42,8 +43,13 @@ const playS = () => {
 }
 
 const App = () => {
+    const accessToken = getAccessToken();
+
+    if (accessToken === '') {
+        requestUserAuthorization();
+    }
+
     const [profile, setProfile] = useState(null);
-    const accessToken = localStorage.getItem('access_token');
 
     useEffect(() => {
         function fetchData() {

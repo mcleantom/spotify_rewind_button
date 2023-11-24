@@ -4,6 +4,64 @@ const generateRandomString = (length) => {
     return values.reduce((acc, x) => acc + possible[x % possible.length], '');
 };
 
+const makeCookie = (name, value, duration_s) => {
+    const now = new Date();
+    let time = now.getTime();
+    time += duration_s * 1000;
+    now.setTime(time);
+    let expires = "expires=" + now.toUTCString();
+    document.cookie = name + "=" + value + ";" + expires + ";path=/";
+}
+
+const maybeGetCookie = (name) => {
+    let cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+        let cookie = cookies[i].trim();
+        if (cookie.startsWith(name)) {
+            return cookie.substring(name.length + 1);
+        }
+    }
+    return '';
+}
+
+const setAccessToken = (token) => {
+    const duration_1_hour = 60 * 60;
+    makeCookie('access_token', token, duration_1_hour);
+}
+
+const refreshAccessToken = (_) => {
+    let refreshToken = localStorage.getItem('refresh_token');
+    const url = 'https://accounts.spotify.com/api/token';
+    const payload = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken,
+          client_id: clientId,
+        }),
+    }
+    fetch(url, payload)
+        .then(response => response.json())
+        .then(data => {
+            setAccessToken(data.access_token);
+        })
+        .catch(error => console.error(error));
+}
+
+export const getAccessToken = (_) => {
+    let accessToken = maybeGetCookie('access_token');
+    if (accessToken === '') {
+        refreshAccessToken();
+        return maybeGetCookie('access_token');
+    } else {
+        return accessToken;
+    }
+}
+
+
 const sha256 = (plain) => {
     const encoder = new TextEncoder();
     const data = encoder.encode(plain);
@@ -18,8 +76,7 @@ const base64encode = (input) => {
 }
 
 const clientId = '63013162bacc41f29f68ce6114ae395b';
-// if we are on localhost
-const redirectUri = window.location.href;
+const redirectUri = 'http://localhost:3031';
 
 const scope = 'user-read-private user-read-email user-modify-playback-state user-read-currently-playing';
 const authUrl = new URL('https://accounts.spotify.com/authorize');
@@ -65,7 +122,7 @@ export const exchangeToken = async _ => {
     const body = await fetch(url, payload).catch(error => console.error(error));
     const response = await body.json();
     console.log(response);
-    localStorage.setItem('access_token', response.access_token);
+    setAccessToken(response.access_token);
 }
 
 
@@ -85,7 +142,7 @@ export async function getProfile() {
 
 export const pauseSong = async () => {
     console.log("Pausing");
-    let accessToken = localStorage.getItem('access_token');
+    let accessToken = getAccessToken();
     const response = await fetch('https://api.spotify.com/v1/me/player/pause', {
         method: 'PUT',
         headers: {
@@ -97,7 +154,7 @@ export const pauseSong = async () => {
 
 
 export const getCurrentlyPlaying = async () => {
-    let accessToken = localStorage.getItem('access_token');
+    let accessToken = getAccessToken();
     const response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
         method: 'GET',
         headers: {
@@ -122,7 +179,7 @@ export const play = async () => {
 
 export const seekToPosition = async (position) => {
     console.log("Seeking to position " + position);
-    let accessToken = localStorage.getItem('access_token');
+    let accessToken = getAccessToken();
     const response = await fetch('https://api.spotify.com/v1/me/player/seek?position_ms=' + position, {
         method: 'PUT',
         headers: {
