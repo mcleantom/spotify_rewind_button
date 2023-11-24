@@ -75,8 +75,19 @@ const base64encode = (input) => {
     .replace(/\//g, '_');
 }
 
+const areWeOnLocalhost = () => {
+    return window.location.hostname === "localhost";
+}
+
 const clientId = '63013162bacc41f29f68ce6114ae395b';
-const redirectUri = 'http://localhost:3031';
+
+let redirectUri = '';
+if (areWeOnLocalhost()) {
+    redirectUri = "http://localhost:3031/redirect"
+}
+else {
+    redirectUri = "https://mcleantom.github.io/spotify_rewind_button/redirect"
+}
 
 const scope = 'user-read-private user-read-email user-modify-playback-state user-read-currently-playing';
 const authUrl = new URL('https://accounts.spotify.com/authorize');
@@ -167,7 +178,7 @@ export const getCurrentlyPlaying = async () => {
 
 export const play = async () => {
     console.log("Playing");
-    let accessToken = localStorage.getItem('access_token');
+    let accessToken = getAccessToken();
     const response = await fetch('https://api.spotify.com/v1/me/player/play', {
         method: 'PUT',
         headers: {

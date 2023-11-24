@@ -10,6 +10,9 @@ import {
     seekToPosition,
     getAccessToken
 } from "./spotify_api";
+import {
+    Route, HashRouter as Router, Routes
+} from "react-router-dom";
 
 let playScratchSoundEffect = () => {
     const payload = {
@@ -42,34 +45,54 @@ const playS = () => {
     });
 }
 
-const App = () => {
+const MainPage = () => {
     const accessToken = getAccessToken();
 
     if (accessToken === '') {
         requestUserAuthorization();
     }
 
-    const [profile, setProfile] = useState(null);
+    const divStyle = {
+        backgroundColor: 'black',
+        height: '100vh', // 100% of the viewport height
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+    };
 
-    useEffect(() => {
-        function fetchData() {
-            console.log("Fetching data");
-            getProfile().then(profile => {
-                console.log(profile);
-                setProfile(profile);
-            });
-        }
-        fetchData();
-    }, []);
+    const buttonStyle = {
+        backgroundColor: 'white',
+        color: 'black',
+        padding: '20px', // Adjust the size as needed
+        borderRadius: '50%', // Make it round
+        fontSize: '24px', // Adjust the font size as needed
+        width: '200px',
+        height: '200px',
+        fontWeight: 'bold',
+    };
 
     return (
-        <div>
-            <button onClick={requestUserAuthorization}>Login</button>
-            <button onClick={exchangeToken}>Get Token</button>
-            <button onClick={playRewindSound}>Rewind</button>
-            <p>{accessToken}</p>
+        <div style={divStyle}>
+            <button style={buttonStyle} onClick={playRewindSound}>
+                REWIND
+            </button>
         </div>
     );
+};
+
+const UserAuthRedirectEndpoint = () => {
+    exchangeToken().then(_ => {
+       window.location.href = "/";
+    });
+}
+
+const App = () => {
+    return (
+        <Routes>
+            <Route exact path="/" element={<MainPage/>}/>
+            <Route path="/redirect" element={<UserAuthRedirectEndpoint/>}/>
+        </Routes>
+    )
 }
 
 export default App;
