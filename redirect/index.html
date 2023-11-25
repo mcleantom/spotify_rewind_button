@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>React App</title>
+<style>
+</style>
+</head>
+<body>
+<script>
+
+const areWeOnLocalhost = () => {
+    return window.location.hostname !== "mcleantom.github.io";
+}
+
+let redirectUri = '';
+if (areWeOnLocalhost()) {
+    redirectUri = "http://localhost:5500/redirect"
+}
+else {
+    redirectUri = "https://mcleantom.github.io/spotify_rewind_button/redirect"
+}
+
+const clientId = '63013162bacc41f29f68ce6114ae395b';
+
+const makeLocalStorageItem = (name, value, duration_s) => {
+    const now = new Date();
+    const expirationTime = now.getTime() + duration_s * 1000;
+    const item = {
+        value: value,
+        expires: expirationTime,
+    };
+    localStorage.setItem(name, JSON.stringify(item));
+}
+
+const maybeGetLocalStorageItem = (name) => {
+    const storedItem = localStorage.getItem(name);
+    if (!storedItem) {
+        return '';
+    }
+
+    const parsedItem = JSON.parse(storedItem);
+    const now = new Date().getTime();
+
+    if (now < parsedItem.expires) {
+        return parsedItem.value;
+    } else {
+        localStorage.removeItem(name);
+        return '';
+    }
+}
+
+const setAccessToken = (token) => {
+    const duration_1_hour = 60 * 60;
+    makeLocalStorageItem('access_token', token, duration_1_hour);
+}
+
+
+async function onPageLoad() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const url = 'https://accounts.spotify.com/api/token';
+    let codeVerifier = window.localStorage.getItem('code_verifier');
+    const payload = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            client_id: clientId,
+            grant_type: 'authorization_code',
+            code,
+            redirect_uri: redirectUri,
+            code_verifier: codeVerifier,
+        }),
+    }
+
+    const body = await fetch(url, payload).catch(error => console.error(error));
+    const response = await body.json();
+    console.log(response);
+    setAccessToken(response.access_token);
+    // switch (document.location.hostname)
+    // {
+    //     case 'mcleantom.github.io':
+    //         window.location.href = 'https://mcleantom.github.io/'; break;
+    //     default:
+    //         window.location.href = 'http://localhost:5500';
+    // }
+}
+
+onPageLoad()
+
+</script>
+</body>
+</html>
