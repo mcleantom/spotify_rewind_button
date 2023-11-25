@@ -127,6 +127,13 @@ const areWeOnLocalhost = () => {
 
 const clientId = '63013162bacc41f29f68ce6114ae395b';
 
+const getRootUrl = () => {
+    if (areWeOnLocalhost()) {
+        return 'http://localhost:5500'
+    }
+    return 'https://mcleantom.github.io/spotify_rewind_button'
+}
+
 let redirectUri = '';
 if (areWeOnLocalhost()) {
     redirectUri = "http://localhost:5500/redirect"
@@ -250,7 +257,9 @@ let playRewindSound = () => {
     getCurrentlyPlaying().then(data => {
         console.log(data);
         pauseSong().then(_ => {
-            let audio = new Audio("/rewind_sound_effect.mp3");
+            const rootUrl = getRootUrl();
+            const audio_file = rootUrl + "/rewind_sound_effect.mp3";
+            let audio = new Audio(audio_file);
             audio.play();
             seekToPosition(data.progress_ms - 10000);
             setTimeout(() => {

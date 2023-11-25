@@ -81,13 +81,13 @@ async function onPageLoad() {
     const response = await body.json();
     console.log(response);
     setAccessToken(response.access_token);
-    // switch (document.location.hostname)
-    // {
-    //     case 'mcleantom.github.io':
-    //         window.location.href = 'https://mcleantom.github.io/'; break;
-    //     default:
-    //         window.location.href = 'http://localhost:5500';
-    // }
+    switch (document.location.hostname)
+    {
+        case 'mcleantom.github.io':
+            window.location.href = 'https://mcleantom.github.io/'; break;
+        default:
+            window.location.href = 'http://localhost:5500';
+    }
 }
 
 onPageLoad()
