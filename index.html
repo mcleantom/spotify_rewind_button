@@ -101,7 +101,10 @@ const getAccessToken = (_) => {
     let accessToken = maybeGetLocalStorageItem('access_token');
     if (accessToken === '') {
         refreshAccessToken();
-        return maybeGetLocalStorageItem('access_token');
+        accessToken = maybeGetLocalStorageItem('access_token');
+        if (accessToken === '') {
+            requestUserAuthorization();
+        }
     } else {
         return accessToken;
     }
